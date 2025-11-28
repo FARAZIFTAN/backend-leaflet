@@ -1,12 +1,16 @@
 const connectToDatabase = require('./db');
 
+
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Allow only the frontend domain
+  res.setHeader('Access-Control-Allow-Origin', 'https://faraziftan.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
+    // Preflight request
+    res.status(204).end();
     return;
   }
 
