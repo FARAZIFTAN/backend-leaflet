@@ -2,13 +2,20 @@ const connectToDatabase = require('./db');
 
 
 module.exports = async (req, res) => {
-  // Set CORS header wildcard agar semua origin diizinkan
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Fungsi untuk set header CORS pada semua response
+  function setCORSHeaders(res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Expose-Headers', '*');
+  }
+
+  setCORSHeaders(res);
 
   if (req.method === 'OPTIONS') {
-    res.status(204).end();
+    setCORSHeaders(res);
+    res.writeHead(204);
+    res.end();
     return;
   }
 
@@ -18,7 +25,9 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET') {
       const locations = await collection.find({}).toArray();
-      res.status(200).json(locations);
+      setCORSHeaders(res);
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).end(JSON.stringify(locations));
     } else if (req.method === 'POST') {
       let data = req.body;
       // Parse body jika belum ter-parse (Vercel serverless function)
@@ -37,12 +46,18 @@ module.exports = async (req, res) => {
         }
       }
       const result = await collection.insertOne(data);
-      res.status(201).json({ insertedId: result.insertedId });
+      setCORSHeaders(res);
+      res.setHeader('Content-Type', 'application/json');
+      res.status(201).end(JSON.stringify({ insertedId: result.insertedId }));
     } else {
-      res.status(405).json({ message: 'Method not allowed' });
+      setCORSHeaders(res);
+      res.setHeader('Content-Type', 'application/json');
+      res.status(405).end(JSON.stringify({ message: 'Method not allowed' }));
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    setCORSHeaders(res);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).end(JSON.stringify({ error: err.message }));
   }
 };
