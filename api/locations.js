@@ -22,7 +22,22 @@ module.exports = async (req, res) => {
       const locations = await collection.find({}).toArray();
       res.status(200).json(locations);
     } else if (req.method === 'POST') {
-      const data = req.body;
+      let data = req.body;
+      // Parse body jika belum ter-parse (Vercel serverless function)
+      if (!data || Object.keys(data).length === 0) {
+        try {
+          data = JSON.parse(req.body);
+        } catch (e) {
+          let body = '';
+          await new Promise((resolve) => {
+            req.on('data', (chunk) => {
+              body += chunk;
+            });
+            req.on('end', resolve);
+          });
+          data = JSON.parse(body);
+        }
+      }
       const result = await collection.insertOne(data);
       res.status(201).json({ insertedId: result.insertedId });
     } else {
