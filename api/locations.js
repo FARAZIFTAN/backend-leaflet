@@ -2,14 +2,17 @@ const connectToDatabase = require('./db');
 
 
 module.exports = async (req, res) => {
-  // Allow only the frontend domain
-  res.setHeader('Access-Control-Allow-Origin', 'https://faraziftan.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Fungsi untuk set header CORS
+  function setCORSHeaders(res) {
+    res.setHeader('Access-Control-Allow-Origin', 'https://faraziftan.github.io');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  setCORSHeaders(res);
 
   if (req.method === 'OPTIONS') {
-    // Preflight request
     res.status(204).end();
     return;
   }
@@ -20,6 +23,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET') {
       const locations = await collection.find({}).toArray();
+      setCORSHeaders(res);
       res.status(200).json(locations);
     } else if (req.method === 'POST') {
       let data = req.body;
@@ -39,12 +43,15 @@ module.exports = async (req, res) => {
         }
       }
       const result = await collection.insertOne(data);
+      setCORSHeaders(res);
       res.status(201).json({ insertedId: result.insertedId });
     } else {
+      setCORSHeaders(res);
       res.status(405).json({ message: 'Method not allowed' });
     }
   } catch (err) {
     console.error(err);
+    setCORSHeaders(res);
     res.status(500).json({ error: err.message });
   }
 };
